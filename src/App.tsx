@@ -312,11 +312,28 @@ export default function App() {
       prev.map((i) => (i.id === item.id ? { ...i, status: 'converted' } : i))
     );
 
+    // Match the confirmed company, or keep a new company alongside its opportunity.
+    const companyName = parsedJob.companyName?.trim() || '待确认企业';
+    const matchedCompany = companies.find(company => company.name === companyName);
+    const companyId = matchedCompany?.id || `c-inbox-${Date.now()}`;
+    if (!matchedCompany) {
+      setCompanies(prev => [...prev, {
+        id: companyId, name: companyName, logo: companyName.slice(0, 2),
+        logoColor: 'bg-slate-100 text-slate-700', nature: '民营企业',
+        industry: '互联网', categories: [], subIndustry: '待核实',
+        description: '从收件箱确认的申请线索；公司属性与申请要求仍需核实。',
+        coreBusiness: '待核实', city: parsedJob.city ? [parsedJob.city] : [],
+        jobsCount: 1, newsCount: 0, website: parsedJob.applyUrl || '',
+        connectedNotes: [], connectedMaterials: [], connectedProjects: [],
+      }]);
+    }
+    const createdDate = new Date().toLocaleDateString('sv-SE');
+
     // 2. Append new job
     const newJob: Job = {
       id: `j-converted-${Date.now()}`,
-      companyId: 'c-1', // default fallback
-      companyName: parsedJob.companyName || '未知企业',
+      companyId,
+      companyName,
       title: parsedJob.title || '未知岗位',
       direction: parsedJob.direction || '技术开发',
       city: parsedJob.city || '深圳',
@@ -324,8 +341,8 @@ export default function App() {
       deadline: parsedJob.deadline || '',
       applyUrl: parsedJob.applyUrl || '',
       source: parsedJob.source || '收件箱转换',
-      addedDate: '2026-07-14',
-      updatedDate: '2026-07-14',
+      addedDate: createdDate,
+      updatedDate: createdDate,
       description: parsedJob.description || '',
       highlight: parsedJob.highlight || '提取自收件箱原始同步线索',
       isFavorite: false,
